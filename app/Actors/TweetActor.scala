@@ -1,17 +1,28 @@
 package Actors
 
-import akka.actor.Actor
-import akka.actor.Actor.Receive
+import javax.inject.{Inject, Named}
 
-/**
-  * Created by rag on 23/04/2016.
-  */
-class TweetActor extends Actor {
+import Actors.TagCounter.Tag
+import Actors.TweetActor.Tweet
+import akka.actor.{Actor, ActorRef, Props}
+
+class TweetActor @Inject() (@Named("tag-counter-actor") tagCounter: ActorRef,
+                            @Named("sentiment-actor") sentimentApi: ActorRef) extends Actor {
   override def receive: Receive = {
-    case _ =>
+    case Tweet(status, follows) =>
+      follows.foreach {
+        tag => if (status.toLowerCase.contains(tag.toLowerCase)) {
+          println(s"tweet is for tag $tag")
+          val newTag = Tag(tag, status)
+          tagCounter ! newTag
+          sentimentApi ! Tag(tag, status)
+        }
+      }
+
   }
 }
 
 object TweetActor {
-  case class Tweet(status: String)
+  def props = Props[TweetActor]
+  case class Tweet(status: String, tags: Set[String])
 }

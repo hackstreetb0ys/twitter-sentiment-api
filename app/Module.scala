@@ -1,6 +1,8 @@
 import com.google.inject.AbstractModule
 import java.time.Clock
 
+import Actors.{SentimentAPI, TagCounter, TweetActor, TwitterStreamActor}
+import play.api.libs.concurrent.AkkaGuiceSupport
 import services.{ApplicationTimer, AtomicCounter, Counter}
 
 /**
@@ -13,7 +15,7 @@ import services.{ApplicationTimer, AtomicCounter, Counter}
  * adding `play.modules.enabled` settings to the `application.conf`
  * configuration file.
  */
-class Module extends AbstractModule {
+class Module extends AbstractModule with AkkaGuiceSupport{
 
   override def configure() = {
     // Use the system clock as the default implementation of Clock
@@ -23,6 +25,12 @@ class Module extends AbstractModule {
     bind(classOf[ApplicationTimer]).asEagerSingleton()
     // Set AtomicCounter as the implementation for Counter.
     bind(classOf[Counter]).to(classOf[AtomicCounter])
+
+//    bindActor[ConfiguredActor]("configured-actor")
+    bindActor[TagCounter]("tag-counter-actor")
+    bindActor[TweetActor]("tweet-actor")
+    bindActor[TwitterStreamActor]("stream-actor")
+    bindActor[SentimentAPI]("sentiment-actor")
   }
 
 }

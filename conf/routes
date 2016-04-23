@@ -16,3 +16,5 @@ POST    /follow                     controllers.FollowController.followTags
 DELETE  /follow/:tag                controllers.FollowController.unfollowTag(tag: String)
 
 GET     /sentiment                  controllers.SentimentController.getSentiments
+
+GET     /counts                     controllers.CountController.count

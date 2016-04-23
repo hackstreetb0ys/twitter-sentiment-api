@@ -1,17 +1,21 @@
 package Actors
 
+import javax.inject.{Inject, Named}
+
+import Actors.TweetActor.Tweet
 import Actors.TwitterStreamActor.{Clean, Connected, Follow, State, Unfollow}
-import akka.actor.{Actor, Props}
-import com.google.inject.{ Singleton}
+import akka.actor.{Actor, ActorRef, Props}
+import com.google.inject.Singleton
 import twitter4j._
 
 import collection.JavaConverters._
 
 @Singleton
-class  TwitterStreamActor extends Actor with TwitterAPI {
+class  TwitterStreamActor @Inject() (@Named("tweet-actor") tweetActor: ActorRef) extends Actor with TwitterAPI {
   val twitterStream = new TwitterStreamFactory(config).getInstance
   var tags: Set[String]  = Set()
   var state: State = Clean()
+  var listenerRef: StatusListener = null
 
 
   override def receive = {
@@ -23,10 +27,10 @@ class  TwitterStreamActor extends Actor with TwitterAPI {
           state = Connected()
         case Connected() => restartAPI()
       }
-      // restart api
-    case Unfollow(oldtags) =>
-      tags = tags -- oldtags
-      //restart api
+
+    case Unfollow(oldtag) =>
+      tags = tags - oldtag
+
       state match {
         case Clean() => startAPI()
           state = Connected()
@@ -35,22 +39,37 @@ class  TwitterStreamActor extends Actor with TwitterAPI {
   }
 
   private def startAPI() = {
-    twitterStream.addListener(listener)
-    val taggs = tags.toArray
-    val javaTagSet = tags.asJava
-    val tagArray: Array[java.lang.String] = javaTagSet.toArray(new Array[java.lang.String](tags.size))
-//    twitterStream.filter(new FilterQuery(Array("#twitter")))
-    println("connected")
-
+    if (tags.nonEmpty){
+      var listenerRef = listener
+      twitterStream.addListener(listenerRef)
+      val query = new FilterQuery()
+      val tagArray: Array[String] = tags.toArray
+      query.track(tagArray: _*)
+      twitterStream.filter(query)
+      println("connected")
+    }
   }
 
   private def restartAPI() = {
+    if (tags.nonEmpty){
+      val query = new FilterQuery()
+      query.track(tags.toArray:_*)
+      twitterStream.filter(query)
+      println("updating query")
+    } else {
+      twitterStream.cleanUp()
+      twitterStream.shutdown()
+      state = Clean()
+    }
+  }
 
+  override def postStop(): Unit = {
+    twitterStream.cleanUp()
+    twitterStream.shutdown()
   }
 
   def listener = new StatusListener() {
-//    def onStatus(status: Status) { analyzer ! Tweet(status.getText) }
-    def onStatus(status: Status) { println(status.getText) }
+    def onStatus(status: Status) { println("got tweet"); tweetActor ! Tweet(status.getText, tags)}
     def onDeletionNotice(statusDeletionNotice: StatusDeletionNotice) {}
     def onTrackLimitationNotice(numberOfLimitedStatuses: Int) {}
     def onException(ex: Exception) { ex.printStackTrace }
@@ -69,6 +88,6 @@ object TwitterStreamActor {
 
   //messages
   case class Follow(tags: Set[String])
-  case class Unfollow(tags: Set[String])
+  case class Unfollow(tag: String)
 }
 
