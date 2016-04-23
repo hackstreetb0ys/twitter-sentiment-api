@@ -1,15 +1,14 @@
 package Actors
 
-import Actors.TweetActor.Tweet
 import Actors.TwitterStreamActor.{Clean, Connected, Follow, State, Unfollow}
-import akka.actor.{Actor, ActorRef, Props}
-import com.google.inject.{Inject, Singleton}
+import akka.actor.{Actor, Props}
+import com.google.inject.{ Singleton}
 import twitter4j._
 
 import collection.JavaConverters._
 
 @Singleton
-class  TwitterStreamActor @Inject() (analyzer: ActorRef) extends Actor with TwitterAPI{
+class  TwitterStreamActor extends Actor with TwitterAPI {
   val twitterStream = new TwitterStreamFactory(config).getInstance
   var tags: Set[String]  = Set()
   var state: State = Clean()

@@ -2,15 +2,21 @@ package controllers
 
 import javax.inject.Inject
 
+import Actors.TwitterStreamActor
 import Actors.TwitterStreamActor.Follow
-import akka.actor.ActorRef
-import com.google.inject.name.Named
+import akka.actor.{ActorRef, ActorSystem}
+import com.google.inject.Singleton
 import play.api.mvc.{Action, Controller}
 
-class FollowController @Inject() (@Named("twitter-api") apiActor: ActorRef) extends Controller{
+@Singleton
+class FollowController @Inject() (system: ActorSystem) extends Controller{
+
+  val twitterStreamActor = {
+    system.actorOf(TwitterStreamActor.props)
+  }
 
   def followTags() = Action { request =>
-    apiActor ! Follow(Set("anything"))
+    twitterStreamActor ! Follow(Set("anything"))
     Ok("stub");
   }
 
