@@ -3,6 +3,8 @@
 # ~~~~
 
 # An example controller showing a sample home page
+OPTIONS    /          controllers.HomeController.options(path: String ?= "")
+OPTIONS    /*path     controllers.HomeController.options(path)
 GET     /                           controllers.HomeController.index
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count

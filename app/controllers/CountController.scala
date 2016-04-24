@@ -33,7 +33,7 @@ class CountController @Inject() (@Named("tag-counter-actor") counter: ActorRef) 
 
     implicit val t = Timeout(5 seconds)
     val futureCounts = ask(counter, GetCounts()).mapTo[Map[String, Int]]
-    futureCounts.map { x => Ok(Json.toJson(x))}
+    futureCounts.map { x => Ok(Json.toJson(x)).withHeaders("Access-Control-Allow-Origin" -> "*")}
   }
 
 }

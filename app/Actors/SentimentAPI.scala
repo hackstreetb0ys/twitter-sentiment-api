@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import Actors.SentimentAPI._
 import Actors.TagCounter.Tag
+import Actors.TwitterStreamActor.Unfollow
 import akka.actor.Actor.Receive
 import akka.actor.{Actor, ActorSystem, Cancellable, Props}
 import com.google.inject.Singleton
@@ -56,7 +57,7 @@ object SentimentAPI {
       if(!tags.isEmpty){
         println("sending sentiment check")
         import play.api.libs.concurrent.Execution.Implicits.defaultContext
-        val ids_ = ids
+//        val ids_ = ids
         val tagsToSend = tags
         tags = List[SentimentCheck]()
         val result = request.post(Json.toJson(SentimentQuery(tagsToSend)))
@@ -67,16 +68,19 @@ object SentimentAPI {
               }, {
                 list => list.foreach {
                   res =>
-                    val tag = ids_(res.id.toInt)
-                    if (res.score > 0.5) {
-                      println("got +ve sentiment")
-                      val oldVal = sentiments.getOrElse(tag, SentimentCount(0,0))
-                      sentiments = sentiments + (tag -> SentimentCount(oldVal.positive + 1, oldVal.negative))
-                    } else {
-                      println("got -ve sentiment")
-                      val oldVal = sentiments.getOrElse(tag, SentimentCount(0,0))
-                      sentiments = sentiments + (tag -> SentimentCount(oldVal.positive, oldVal.negative + 1))
-                    }
+                    ids.get(res.id.toInt).fold({
+                      println("tag deleted")
+                    }) ({ tag =>
+                      if (res.score > 0.5) {
+                        println("got +ve sentiment")
+                        val oldVal = sentiments.getOrElse(tag, SentimentCount(0,0))
+                        sentiments = sentiments + (tag -> SentimentCount(oldVal.positive + 1, oldVal.negative))
+                      } else {
+                        println("got -ve sentiment")
+                        val oldVal = sentiments.getOrElse(tag, SentimentCount(0,0))
+                        sentiments = sentiments + (tag -> SentimentCount(oldVal.positive, oldVal.negative + 1))
+                      }
+                    })
                 }
               })
           }
@@ -84,6 +88,9 @@ object SentimentAPI {
     case GetSentiments() =>
       val sentimentsToSend = sentiments
       sender ! sentimentsToSend
+    case Unfollow(tag) =>
+      sentiments = sentiments - tag
+      ids = ids.filter({case (x,t) => if (t == tag) false else true})
   }
 
   override def preStart() = {

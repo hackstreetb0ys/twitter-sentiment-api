@@ -19,7 +19,7 @@ class SentimentController @Inject() (@Named("sentiment-actor") sentimentActor: A
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
     implicit val t = Timeout(5 seconds)
     val futureCounts = ask(sentimentActor, GetSentiments()).mapTo[Map[String, SentimentCount]]
-    futureCounts.map { x => Ok(Json.toJson(x))}
+    futureCounts.map { x => Ok(Json.toJson(x)).withHeaders("Access-Control-Allow-Origin" -> "*")}
   }
 
 }

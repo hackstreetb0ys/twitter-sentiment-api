@@ -10,7 +10,9 @@ import play.api.libs.json.{JsError, JsSuccess}
 import play.api.mvc.{Action, BodyParsers, Controller}
 
 @Singleton
-class FollowController @Inject() (@Named("stream-actor") twitterStreamActor: ActorRef) extends Controller{
+class FollowController @Inject() (@Named("stream-actor") twitterStreamActor: ActorRef,
+                                  @Named("tag-counter-actor") tagCounter: ActorRef,
+                                  @Named("sentiment-actor") sentimentApi: ActorRef) extends Controller{
 
 //  val twitterStreamActor = system.actorOf(TwitterStreamActor.props)
 
@@ -21,11 +23,13 @@ class FollowController @Inject() (@Named("stream-actor") twitterStreamActor: Act
       case JsError(e) => BadRequest("Error")
     }
 
-    Ok("stub");
+    Ok("followed tags").withHeaders("Access-Control-Allow-Origin" -> " *");
   }
 
   def unfollowTag(tag: String) = Action { request =>
     twitterStreamActor ! Unfollow(tag)
-    Ok("stub");
+    tagCounter ! Unfollow(tag)
+    sentimentApi ! Unfollow(tag)
+    Ok(s"Unfollowed $tag").withHeaders("Access-Control-Allow-Origin" -> "*");
   }
 }

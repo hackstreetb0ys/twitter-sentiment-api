@@ -1,6 +1,7 @@
 package Actors
 
 import Actors.TagCounter.{GetCounts, Tag}
+import Actors.TwitterStreamActor.Unfollow
 import akka.actor.{Actor, ActorSystem, Props}
 import com.google.inject.Inject
 
@@ -12,6 +13,8 @@ class TagCounter () extends Actor{
       count = count + (tag -> (old + 1))
     case GetCounts() =>
       sender ! count
+    case Unfollow(tag) =>
+      count = count - tag
   }
 }
 
