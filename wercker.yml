@@ -10,10 +10,12 @@ build:
         code: activator dist -Dsbt.ivy.home=$WERCKER_CACHE_DIR/ivy2/ -Divy.home=$WERCKER_CACHE_DIR/ivy2/
 
     - script:
-        name: Copy dist package
-        code: |
-          unzip target/universal/dist.zip
-          mv target/universal/dist $WERCKER_OUTPUT_DIR/app
+        name: Extract Dist
+        code: unzip target/universal/dist.zip
+
+    - script:
+        name: Copy files to out dir
+        code: mv target/universal/dist $WERCKER_OUTPUT_DIR/app
 
 deploy:
     box: ragnarula/jdk:8u73-b02_0.1
