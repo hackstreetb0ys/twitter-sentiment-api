@@ -3,17 +3,17 @@ build:
   steps:
     - script:
         name: Run sbt tests
-        code: activator test
+        code: activator test -Dsbt.ivy.home=$WERCKER_CACHE_DIR/ivy2/ -Divy.home=$WERCKER_CACHE_DIR/ivy2/
 
     - script:
         name: Build distribution
-        code: activator dist
+        code: activator dist -Dsbt.ivy.home=$WERCKER_CACHE_DIR/ivy2/ -Divy.home=$WERCKER_CACHE_DIR/ivy2/
 
     - script:
         name: Copy dist package
         code: |
           mkdir $WERCKER_OUTPUT_DIR/app
-          unzip target/universion/*.zip $WERCKER_OUTPUT_DIR/app
+          unzip target/universion/dist.zip $WERCKER_OUTPUT_DIR/app
 
 deploy:
     box: ragnarula/jdk:8u73-b02_0.1
