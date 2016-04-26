@@ -1,0 +1,10 @@
+box: ragnarula/typesafe-activator:latest
+build:
+  steps:
+    - script:
+        name: Run sbt tests
+        code: activator test
+
+    - script:
+        name: Build distribution
+        code: activator dist
