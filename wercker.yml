@@ -8,3 +8,21 @@ build:
     - script:
         name: Build distribution
         code: activator dist
+
+    - script:
+        name: Copy dist package
+        code: |
+          mkdir $WERCKER_OUTPUT_DIR/app
+          unzip target/universion/*.zip $WERCKER_OUTPUT_DIR/app
+
+deploy:
+    box: ragnarula/jdk:8u73-b02_0.1
+    hub:
+    # use the scratch step to build a container from scratch based on the files present
+    - internal/docker-scratch-push:
+        username: $HUB_USER
+        password: $HUB_PASSWORD
+        tag: $WERCKER_GIT_COMMIT, latest
+        ports: "9000"
+        repository: ragnarula/twitter-sentiment-play
+        entrypoint: /app/twitter-sentiment-play
