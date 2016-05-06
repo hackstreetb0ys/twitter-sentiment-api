@@ -1,13 +1,13 @@
-box: ragnarula/typesafe-activator:latest
+box: ragnarula/sbt:0.13.11_0.1
 build:
   steps:
     - script:
         name: Run sbt tests
-        code: activator test -Dsbt.ivy.home=$WERCKER_CACHE_DIR/ivy2/ -Divy.home=$WERCKER_CACHE_DIR/ivy2/
+        code: sbt -Dsbt.ivy.home=$WERCKER_CACHE_DIR/ivy2/ -Divy.home=$WERCKER_CACHE_DIR/ivy2/ test
 
     - script:
         name: Build distribution
-        code: activator dist -Dsbt.ivy.home=$WERCKER_CACHE_DIR/ivy2/ -Divy.home=$WERCKER_CACHE_DIR/ivy2/
+        code: sbt -Dsbt.ivy.home=$WERCKER_CACHE_DIR/ivy2/ -Divy.home=$WERCKER_CACHE_DIR/ivy2/ dist
 
     - script:
         name: Extract Dist
