@@ -29,4 +29,4 @@ deploy:
         tag: $WERCKER_GIT_COMMIT, latest
         ports: "9000"
         repository: ragnarula/twitter-sentiment-play
-        entrypoint: /app/twitter-sentiment-play
+        entrypoint: /app/bin/twitter-sentiment-play
